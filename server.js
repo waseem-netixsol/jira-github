@@ -60,7 +60,7 @@ app.post("/webhook-endpoint", async (req, res) => {
         console.log("GitHub issue created:", response);
         res.status(200).send("Webhook received and GitHub issue created");
       } catch (error) {
-        // console.error("Error creating GitHub issue:", error);
+        console.error("Error creating GitHub issue:", error);
         res.status(500).json({
           message: "Error creating GitHub issue",
           error: error.message,
