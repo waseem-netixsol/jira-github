@@ -50,7 +50,7 @@ app.post("/webhook-endpoint", async (req, res) => {
             "X-GitHub-Api-Version": "2022-11-28",
           },
         };
-
+        console.log("creating github issue");
         // Make request to create GitHub issue
         const response = await octokit.request(
           "POST /repos/" +
@@ -61,7 +61,7 @@ app.post("/webhook-endpoint", async (req, res) => {
           requestBody
         );
 
-        // console.log("GitHub issue created:", response);
+        console.log("GitHub issue created:", response);
         res.status(200).send("Webhook received and GitHub issue created");
       } catch (error) {
         // console.error("Error creating GitHub issue:", error);
