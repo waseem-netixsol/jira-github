@@ -60,19 +60,19 @@ app.post("/webhook-endpoint", async (req, res) => {
           requestBody
         );
 
-        console.log("GitHub issue created:", response.data.html_url);
+        // console.log("GitHub issue created:", response.data.html_url);
         res.status(200).send("Webhook received and GitHub issue created");
       } catch (error) {
-        console.error("Error creating GitHub issue:", error);
+        // console.error("Error creating GitHub issue:", error);
         res.status(500).json({
           message: "Error creating GitHub issue",
           error: error.message,
         });
       }
     } else {
-      console.log(
-        "Jira issue does not start with 'testing-issue', skipping GitHub issue creation."
-      );
+      //   console.log(
+      //     "Jira issue does not start with 'testing-issue', skipping GitHub issue creation."
+      //   );
       res.status(200).send("Webhook received, but no GitHub issue created");
     }
   } else {
