@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
 
 // Define the webhook endpoint for Jira
 app.post("/webhook-endpoint", async (req, res) => {
-  console.log("vercel body = >", req.body); // Log the entire request body for debugging
+  //   console.log("vercel body = >", req.body); // Log the entire request body for debugging
 
   const issue = req.body.issue;
   //   console.log("New issue created in Jira:", issue);
@@ -60,7 +60,7 @@ app.post("/webhook-endpoint", async (req, res) => {
           requestBody
         );
 
-        // console.log("GitHub issue created:", response.data.html_url);
+        console.log("GitHub issue created:", response);
         res.status(200).send("Webhook received and GitHub issue created");
       } catch (error) {
         // console.error("Error creating GitHub issue:", error);
