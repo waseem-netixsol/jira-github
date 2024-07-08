@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 
 // Define the webhook endpoint
 app.get("/", (req, res) => {
-  res.status(200).send("Webhook received");
+  res.status(200).send("Webhook received with slash");
 });
 app.post("/webhook-endpoint", (req, res) => {
   const issue = req.body.issue;
