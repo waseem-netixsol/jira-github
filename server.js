@@ -41,8 +41,8 @@ app.post("/webhook-endpoint", async (req, res) => {
 
         // Create request body for GitHub issue
         const requestBody = {
-          owner: process.env.OWNER,
-          repo: process.env.REPO,
+          owner: "waseem567",
+          repo: "test",
           title: issueSummary,
           body: issueDescription,
           labels: label ? [label] : [],
@@ -53,11 +53,7 @@ app.post("/webhook-endpoint", async (req, res) => {
         console.log("creating github issue");
         // Make request to create GitHub issue
         const response = await octokit.request(
-          "POST /repos/" +
-            process.env.OWNER +
-            "/" +
-            process.env.REPO +
-            "/issues",
+          "POST /repos/waseem567/test/issues",
           requestBody
         );
 
