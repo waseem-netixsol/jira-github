@@ -18,12 +18,13 @@ app.post("/webhook-endpoint", async (req, res) => {
   //   console.log("vercel body issue = >", req.body.issue);
 
   const issue = req.body.issue;
-  //   console.log("New issue created in Jira:", issue);
 
   if (issue && issue.fields && issue.fields.summary) {
     const issueSummary = issue.fields.summary;
     const issueDescription = issue.fields.description || "";
 
+    console.log("jira issue summary", issueSummary);
+    console.log("jira issue Desc", issueDescription);
     // Check if the issue title starts with "testing-issue"
     if (issueSummary.startsWith("sqa:")) {
       try {
@@ -60,7 +61,7 @@ app.post("/webhook-endpoint", async (req, res) => {
           requestBody
         );
 
-        console.log("GitHub issue created:", response);
+        // console.log("GitHub issue created:", response);
         res.status(200).send("Webhook received and GitHub issue created");
       } catch (error) {
         // console.error("Error creating GitHub issue:", error);
