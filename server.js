@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const axios = require("axios");
+
 require("dotenv").config();
 
 const app = express();
@@ -18,23 +19,29 @@ app.get("/", (req, res) => {
 app.post("/webhook-endpoint", async (req, res) => {
   const issue = req.body.issue;
   console.log("New issue created in Jira:", issue);
-
+  console.log("env  = ", process.env.GITHUB_TOKEN);
   if (issue) {
+    const { Octokit } = await import("octokit");
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN,
+    });
+
     const issueSummary = issue.fields.summary;
     const issueDescription = issue.fields.description || "";
 
-    // Create a new issue on GitHub
     try {
-      const response = await axios.post(
-        process.env.GITHUB_REPO_URL,
+      const response = await octokit.request(
+        "POST /repos/{owner}/{repo}/issues",
         {
+          owner: "SkillMatch-tech",
+          repo: "skillmatch-interface",
           title: issueSummary,
           body: `Jira Issue: ${issue.key}\n\n${issueDescription}`,
-        },
-        {
+          assignees: ["waseem-netixsol"], // Replace with your GitHub username
+          milestone: 1,
+          labels: ["bug"],
           headers: {
-            Authorization: `token ${process.env.GITHUB_TOKEN}`,
-            "Content-Type": "application/json",
+            "X-GitHub-Api-Version": "2022-11-28",
           },
         }
       );
@@ -42,11 +49,11 @@ app.post("/webhook-endpoint", async (req, res) => {
       console.log("GitHub issue created:", response.data.html_url);
       res.status(200).send("Webhook received and GitHub issue created");
     } catch (error) {
-      console.error(
-        "Error creating GitHub issue:",
-        error.response ? error.response.data : error.message
-      );
-      res.status(500).send("Error creating GitHub issue");
+      console.error("Error creating GitHub issue:", error);
+      res.status(500).json({
+        message: "Error creating GitHub issue",
+        error: error.message,
+      });
     }
   } else {
     res.status(400).send("Invalid payload");
