@@ -15,10 +15,10 @@ app.get("/", (req, res) => {
 
 // Define the webhook endpoint for Jira
 app.post("/webhook-endpoint", async (req, res) => {
-  console.log(req.body); // Log the entire request body for debugging
+  console.log("vercel body = >", req.body); // Log the entire request body for debugging
 
   const issue = req.body.issue;
-  console.log("New issue created in Jira:", issue);
+  //   console.log("New issue created in Jira:", issue);
 
   if (issue && issue.fields && issue.fields.summary) {
     const issueSummary = issue.fields.summary;
