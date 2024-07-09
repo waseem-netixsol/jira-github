@@ -25,7 +25,6 @@ app.post("/webhook-endpoint", async (req, res) => {
 
     console.log("jira issue summary", issueSummary);
     console.log("jira issue Desc", issueDescription);
-    console.log("env token = ", process.env.GITHUB_TOKEN);
     // Check if the issue title starts with "testing-issue"
     if (issueSummary.startsWith("sqa:")) {
       try {
@@ -40,38 +39,12 @@ app.post("/webhook-endpoint", async (req, res) => {
             ? issueSummary.substring(labelIndex + 1).trim()
             : "";
 
-        // Create request body for GitHub issue
-        const requestBody = {
-          owner: "waseem567",
-          repo: "addin",
-          title: issueSummary,
-          body: issueDescription,
-          labels: label ? [label] : [],
-          headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
-          },
-        };
-        console.log("creating github issue");
-        // Make request to create GitHub issue
-        const githubIssue = await fetch(
-          "https://api.github.com/repos/waseem567/addin/issues",
-          {
-            body: JSON.stringify(requestBody),
-            method: "POST",
-            headers: {
-              Authorization: `Bearer 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`,
-              "Content-Type": "application/json",
-              Accept: "application/vnd.github.v3+json",
-            },
-          }
-        );
-        const resp = await githubIssue.json();
-        console.log("GitHub issue created:", resp);
+        await githubIssue(issueSummary, issueDescription, label);
         res.status(200).send("Webhook received and GitHub issue created");
       } catch (error) {
         console.error("Error creating GitHub issue:", error);
         res.status(500).json({
-          message: "Error creating GitHub issue...",
+          message: "Error creating GitHub issue",
           error: error.message,
         });
       }
@@ -90,3 +63,29 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+async function githubIssue(summary, description, label) {
+  try {
+    const { Octokit } = await import("octokit");
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN,
+    });
+
+    const gitIssue = await octokit.request(
+      "POST /repos/waseem567/addin/issues",
+      {
+        owner: "waseem567",
+        repo: "addin",
+        title: summary,
+        body: description,
+        headers: {
+          "X-GitHub-Api-Version": "2022-11-28",
+          authorization: "bearer " + process.env.GITHUB_TOKEN,
+        },
+      }
+    );
+    console.log(githubIssue);
+  } catch (error) {
+    console.log("catch = ", error);
+  }
+}
