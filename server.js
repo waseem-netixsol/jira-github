@@ -25,12 +25,13 @@ app.post("/webhook-endpoint", async (req, res) => {
 
     console.log("jira issue summary", issueSummary);
     console.log("jira issue Desc", issueDescription);
+    console.log("env token = ", process.env.GITHUB_TOKEN);
     // Check if the issue title starts with "testing-issue"
     if (issueSummary.startsWith("sqa:")) {
       try {
         const { Octokit } = await import("octokit");
         const octokit = new Octokit({
-          auth: "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",
+          auth: process.env.GITHUB_TOKEN,
         });
         // Extract label from the issue title
         const labelIndex = issueSummary.lastIndexOf("-");
