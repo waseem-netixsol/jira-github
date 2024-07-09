@@ -30,7 +30,7 @@ app.post("/webhook-endpoint", async (req, res) => {
       try {
         const { Octokit } = await import("octokit");
         const octokit = new Octokit({
-          auth: process.env.GITHUB_TOKEN,
+          auth: "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",
         });
         // Extract label from the issue title
         const labelIndex = issueSummary.lastIndexOf("-");
