@@ -28,10 +28,7 @@ app.post("/webhook-endpoint", async (req, res) => {
     // Check if the issue title starts with "testing-issue"
     if (issueSummary.startsWith("sqa:")) {
       try {
-        const { Octokit } = await import("octokit");
-        const octokit = new Octokit({
-          auth: "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",
-        });
+        
         // Extract label from the issue title
         const labelIndex = issueSummary.lastIndexOf("-");
         const label =
@@ -51,6 +48,10 @@ app.post("/webhook-endpoint", async (req, res) => {
           },
         };
         console.log("creating github issue");
+        const { Octokit } = await import("octokit");
+        const octokit = new Octokit({
+          auth: "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",
+        });
         // Make request to create GitHub issue
         const response = await octokit.request(
           "POST /repos/waseem567/addin/issues",
