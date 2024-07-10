@@ -10,7 +10,7 @@ async function githubIssue() {
       {
         owner: "waseem567",
         repo: "addin",
-        title: "Found a bug",
+        title: "Found a bug title",
         body: "I'm having a problem with this.",
         headers: {
           "X-GitHub-Api-Version": "2022-11-28",
