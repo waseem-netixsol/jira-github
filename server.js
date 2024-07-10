@@ -21,14 +21,6 @@ app.post("/webhook-endpoint", async (req, res) => {
 
   if (issue && issue.fields && issue.fields.summary) {
     const issueSummary = issue.fields.summary;
-    const labelIndex = issueSummary.lastIndexOf("-");
-    const label =
-      labelIndex !== -1 ? issueSummary.substring(labelIndex + 1).trim() : "";
-    const titleWithoutPrefixAndLabel = issueSummary
-      .replace(/^github:/, "")
-      .replace(/-\s*\w+$/, "")
-      .trim();
-
     const issueDescription = issue.fields.description || "";
     const jiraIssueKey = issue.key;
 
@@ -49,6 +41,10 @@ app.post("/webhook-endpoint", async (req, res) => {
           labelIndex !== -1
             ? issueSummary.substring(labelIndex + 1).trim()
             : "";
+        let titleWithoutPrefixAndLabel = issueSummary
+          .replace(/^github:/, "")
+          .replace(/-\s*\w+$/, "")
+          .trim();
 
         if (req.body.webhookEvent === "jira:issue_created") {
           // If the event is for a new issue creation
