@@ -21,14 +21,22 @@ app.post("/webhook-endpoint", async (req, res) => {
 
   if (issue && issue.fields && issue.fields.summary) {
     const issueSummary = issue.fields.summary;
+    const labelIndex = issueSummary.lastIndexOf("-");
+    const label =
+      labelIndex !== -1 ? issueSummary.substring(labelIndex + 1).trim() : "";
+    const titleWithoutPrefixAndLabel = issueSummary
+      .replace(/^github:/, "")
+      .replace(/-\s*\w+$/, "")
+      .trim();
+
     const issueDescription = issue.fields.description || "";
     const jiraIssueKey = issue.key;
 
     console.log("jira issue summary", issueSummary);
     console.log("jira issue Desc", issueDescription);
 
-    // Check if the issue title starts with "testing-issue"
-    if (issueSummary.startsWith("testing-issue:")) {
+    // Check if the issue title starts with "github:"
+    if (issueSummary.startsWith("github:")) {
       try {
         const { Octokit } = await import("octokit");
         const octokit = new Octokit({
@@ -46,7 +54,7 @@ app.post("/webhook-endpoint", async (req, res) => {
           // If the event is for a new issue creation
           const githubIssue = await createGithubIssue(
             octokit,
-            issueSummary,
+            titleWithoutPrefixAndLabel,
             issueDescription,
             label
           );
