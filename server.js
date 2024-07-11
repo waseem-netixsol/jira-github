@@ -27,69 +27,72 @@ app.post("/webhook-endpoint", async (req, res) => {
     console.log("jira issue summary", issueSummary);
     console.log("jira issue Desc", issueDescription);
 
-    // Check if the issue title starts with "github:"
-    if (issueSummary.startsWith("github:")) {
-      try {
-        const { Octokit } = await import("octokit");
-        const octokit = new Octokit({
-          auth: process.env.GITHUB_TOKEN,
-        });
+    let repoName;
+    if (issueSummary.startsWith("sqa_api:")) {
+      repoName = "skillmatch-backend";
+    } else if (issueSummary.startsWith("sqa_ft:")) {
+      repoName = "skillmatch-interface";
+    } else {
+      res.status(200).send("Payload received, but no issue was created");
+      return;
+    }
 
-        // Extract label from the issue title
-        const labelIndex = issueSummary.lastIndexOf("-");
-        const label =
-          labelIndex !== -1
-            ? issueSummary.substring(labelIndex + 1).trim()
-            : "";
-        let titleWithoutPrefixAndLabel = issueSummary
-          .replace(/^github:/, "")
-          .replace(/-\s*\w+$/, "")
-          .trim();
+    try {
+      const { Octokit } = await import("octokit");
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_TOKEN,
+      });
 
-        if (req.body.webhookEvent === "jira:issue_created") {
-          // If the event is for a new issue creation
-          const githubIssue = await createGithubIssue(
+      // Extract label from the issue title
+      const labelIndex = issueSummary.lastIndexOf("-");
+      const label =
+        labelIndex !== -1 ? issueSummary.substring(labelIndex + 1).trim() : "";
+      let titleWithoutPrefixAndLabel = issueSummary
+        .replace(/^sqa_api:|^sqa_ft:/, "")
+        .replace(/-\s*\w+$/, "")
+        .trim();
+
+      if (req.body.webhookEvent === "jira:issue_created") {
+        // If the event is for a new issue creation
+        const githubIssue = await createGithubIssue(
+          octokit,
+          titleWithoutPrefixAndLabel,
+          issueDescription,
+          label,
+          repoName
+        );
+
+        // Map Jira issue key to GitHub issue number for later updates
+        jiraToGithubMap[jiraIssueKey] = githubIssue.number;
+
+        res.status(200).send("Webhook received and GitHub issue created");
+      } else if (req.body.webhookEvent === "jira:issue_updated") {
+        // If the event is for an issue update
+        const githubIssueNumber = jiraToGithubMap[jiraIssueKey];
+
+        if (githubIssueNumber) {
+          await updateGithubIssue(
             octokit,
-            titleWithoutPrefixAndLabel,
+            githubIssueNumber,
             issueDescription,
-            label
+            repoName
           );
 
-          // Map Jira issue key to GitHub issue number for later updates
-          jiraToGithubMap[jiraIssueKey] = githubIssue.number;
-
-          res.status(200).send("Webhook received and GitHub issue created");
-        } else if (req.body.webhookEvent === "jira:issue_updated") {
-          // If the event is for an issue update
-          const githubIssueNumber = jiraToGithubMap[jiraIssueKey];
-
-          if (githubIssueNumber) {
-            await updateGithubIssue(
-              octokit,
-              githubIssueNumber,
-              issueDescription
-            );
-
-            res.status(200).send("Webhook received and GitHub issue updated");
-          } else {
-            res
-              .status(400)
-              .send("GitHub issue not found for the given Jira issue");
-          }
+          res.status(200).send("Webhook received and GitHub issue updated");
         } else {
-          res.status(400).send("Unhandled webhook event");
+          res
+            .status(400)
+            .send("GitHub issue not found for the given Jira issue");
         }
-      } catch (error) {
-        console.error("Error processing webhook:", error);
-        res.status(500).json({
-          message: "Error processing webhook",
-          error: error.message,
-        });
+      } else {
+        res.status(400).send("Unhandled webhook event");
       }
-    } else {
-      res
-        .status(200)
-        .send("Webhook received, but no GitHub issue created or updated");
+    } catch (error) {
+      console.error("Error processing webhook:", error);
+      res.status(500).json({
+        message: "Error processing webhook",
+        error: error.message,
+      });
     }
   } else {
     res.status(400).send("Invalid payload from Jira");
@@ -97,17 +100,23 @@ app.post("/webhook-endpoint", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(3000, () => {
+app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-async function createGithubIssue(octokit, summary, description, label) {
+async function createGithubIssue(
+  octokit,
+  summary,
+  description,
+  label,
+  repoName
+) {
   try {
     const response = await octokit.request(
-      "POST /repos/waseem567/addin/issues",
+      `POST /repos/SkillMatch-tech/${repoName}/issues`,
       {
-        owner: "waseem567",
-        repo: "addin",
+        owner: "SkillMatch-tech",
+        repo: repoName,
         title: summary,
         body: `Jira Issue Description: ${description}`,
         labels: label ? [label] : [],
@@ -123,13 +132,13 @@ async function createGithubIssue(octokit, summary, description, label) {
   }
 }
 
-async function updateGithubIssue(octokit, issueNumber, description) {
+async function updateGithubIssue(octokit, issueNumber, description, repoName) {
   try {
     await octokit.request(
-      `PATCH /repos/waseem567/addin/issues/${issueNumber}`,
+      `PATCH /repos/SkillMatch-tech/${repoName}/issues/${issueNumber}`,
       {
-        owner: "waseem567",
-        repo: "addin",
+        owner: "SkillMatch-tech",
+        repo: repoName,
         body: `Updated Jira Issue Description: ${description}`,
         headers: {
           "X-GitHub-Api-Version": "2022-11-28",
